@@ -1,0 +1,35 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/todo.dart';
+
+class FirestoreService {
+  final CollectionReference _todosCollection =
+      FirebaseFirestore.instance.collection('todos');
+
+  // Menambahkan tugas atau todo ke firestore 
+  Future<void> addTodo(String taskName) async {
+    final newTodo = Todo(
+      id: '',
+      task: taskName,
+      isDone: false,
+    );
+    await _todosCollection.add(newTodo.toMap());
+  }
+
+  // Membaca atau mengambil tugas todo dari firestore
+  Stream<List<Todo>> getTodos() {
+    return _todosCollection
+        .orderBy('createAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => Todo.fromFirestore(doc)).toList());
+  }
+
+  // Update status todo menjadi selesai atau belum selesai
+  Future<void> updateTodoStatus(String todoId, bool currentStatus) async {
+    await _todosCollection.doc(todoId).update({'isDone': !currentStatus});
+  }
+
+  // Delete atau menghapus tugas todo dari firestore
+  Future<void> deleteTodo(String todoId) async {
+    await _todosCollection.doc(todoId).delete();
+  }
+}
